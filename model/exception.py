@@ -1,2 +1,7 @@
+from typing_extensions import override
+
+
 class PayrollException(Exception):
-    pass
+    @override
+    def __str__(self) -> str:
+        return super().__str__()

@@ -6,13 +6,12 @@ class Benefit(Enum):
 
 
 class RegularBenefit(Benefit):
-    HEALTH_INSURANCE = 10000
-    DENTAL_INSURANCE = 8000
-    VISION_INSURANCE = 7000
+    HEALTH_INSURANCE = 2000  # Capped to 2k
+    DENTAL_INSURANCE = 1000  # Capped to 1k
+    VISION_INSURANCE = 1500  # Capped to 1.5k
 
 
 class PartTimeBenefit(Benefit):
-    PAID_TIME_OFF = 4000
     COMMUTE_INSURANCE = 2000
 
 

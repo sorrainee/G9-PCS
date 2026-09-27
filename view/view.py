@@ -20,10 +20,10 @@ class ViewMode(Enum):
 
 
 class View:
+    blue = "\033[94m"
+    color_end = "\033[0m"
     HEADER = f"{'-' * 10}  SystemD [Payroll and Compensation]  {'-' * 10}\n"
-    DESCRIPTION = (
-        "To exit views other than this one pre-emptively, enter ':q' in any input.\n"
-    )
+    DESCRIPTION = f"To exit views other than this one pre-emptively, enter '{blue}:q{color_end}' in any input.\n"
     QUIT_SIGNAL = ":q"
 
     def clear_screen(self):

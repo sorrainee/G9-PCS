@@ -24,26 +24,35 @@ class Employee(ABC):
     def get_benefits(self) -> tuple[Benefit, ...]:
         pass
 
+    @override
     def __str__(self) -> str:
-        return f"Employee ID: {self.id}\nName: {self.name}"
+        blue = "\033[94m"
+        color_end = "\033[0m"
+
+        return f"Employee ID: {blue}{self.id}{color_end}\nName: {self.name}"
+
+    @override
+    def __eq__(self, value: object, /) -> bool:
+        if isinstance(value, Employee):
+            return self.id == value.id
+        return super().__eq__(value)
 
 
 class RegularEmployee(Employee):
-    __overtime_entitlement = 1.5
-    standard_work_hours = 40
+    # sourced from wage.is Philippines
+    overtime_entitlement = 1.25
+    standard_work_hours = 48  # Weekly
 
     def __init__(self, id: str, name: str, salary: float):
         super().__init__(id, name, salary)
 
     def calculate_overtime_pay(self, hours: int, overtime_hours: int):
-        # Formula from Fair Labor Standards Act
+        # Formula from FLSA
         overtime_rate = self.rate / self.__class__.standard_work_hours
         return (
             0
             if hours < self.__class__.standard_work_hours
-            else (
-                overtime_rate * self.__class__.__overtime_entitlement * overtime_hours
-            )
+            else (overtime_rate * self.__class__.overtime_entitlement * overtime_hours)
         )
 
     @override
@@ -56,8 +65,12 @@ class RegularEmployee(Employee):
     def get_benefits(self):
         return tuple([b for b in RegularBenefit])
 
+    @override
     def __str__(self) -> str:
-        return super().__str__() + f"\nSalary: {self.rate:,.2f}"
+        green = "\033[92m"
+        color_end = "\033[0m"
+
+        return super().__str__() + f"\nSalary: {green}{self.rate:,.2f}{color_end}"
 
 
 class PartTimeEmployee(Employee):
@@ -72,8 +85,12 @@ class PartTimeEmployee(Employee):
     def get_benefits(self):
         return tuple([b for b in PartTimeBenefit])
 
+    @override
     def __str__(self) -> str:
-        return super().__str__() + f"\nHourly Wage: {self.rate:,.2f}"
+        green = "\033[92m"
+        color_end = "\033[0m"
+
+        return super().__str__() + f"\nHourly Wage: {green}{self.rate:,.2f}{color_end}"
 
 
 class CommissionEmployee(Employee):
@@ -88,5 +105,8 @@ class CommissionEmployee(Employee):
     def get_benefits(self):
         return tuple([b for b in CommissionBenefit])
 
+    @override
     def __str__(self) -> str:
-        return super().__str__() + f"\nBase Pricing: {self.rate:,.2f}"
+        green = "\033[92m"
+        color_end = "\033[0m"
+        return super().__str__() + f"\nBase Pricing: {green}{self.rate:,.2f}{color_end}"

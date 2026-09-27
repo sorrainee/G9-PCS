@@ -1,5 +1,6 @@
 import math
 import re
+import sys
 from time import sleep
 
 from controller.manager import PayrollManager
@@ -43,7 +44,7 @@ class Application:
                 case ViewMode.REPORT:
                     self.report()
                 case ViewMode.QUIT:
-                    self.ui.exit()
+                    sys.exit()
 
     # Helpers
 
@@ -68,7 +69,7 @@ class Application:
                 case "8":
                     self.ui.set_view_mode(ViewMode.REPORT)
                 case "9":
-                    self.ui.set_view_mode(ViewMode.QUIT)
+                    self.ui.exit()
                 case _:
                     self.ui.error("Available operations are only from 1 to 9")
                     continue
@@ -76,6 +77,7 @@ class Application:
 
     def register(self):
         rate: float
+        employee: Employee
 
         id = self.ui.input("What is the employee's ID?")
 
@@ -99,8 +101,30 @@ class Application:
             break
 
         while True:
+            employee_choice = self.ui.input(
+                "Enter the number according to their employee type [1 (Regular) / 2 (Part-timer) / 3 (Commission-based)]"
+            )
+
+            if employee_choice == self.ui.QUIT_SIGNAL:
+                return
+
+            match employee_choice:
+                case "1":
+                    employee = RegularEmployee(id, name, 0)
+                case "2":
+                    employee = PartTimeEmployee(id, name, 0)
+                case "3":
+                    employee = CommissionEmployee(id, name, 0)
+                case _:
+                    self.ui.error("Available employee types are only between 1 to 3")
+                    continue
+            break
+
+        while True:
             try:
-                f = self.ui.input("How much is the employee's salary?")
+                f = self.ui.input(
+                    f"How much is the employee's salary? Provide the {'hourly' if isinstance(employee, PartTimeEmployee) else 'weekly' if isinstance(employee, RegularEmployee) else 'pricing'} salary."
+                )
 
                 if f == self.ui.QUIT_SIGNAL:
                     return
@@ -112,27 +136,8 @@ class Application:
                 self.ui.error("Employee's salary is invalid.")
                 continue
 
-        while True:
-            employee_choice = self.ui.input(
-                "Enter the number according to their employee type [1 (Regular) / 2 (Part-timer) / 3 (Commission-based)]"
-            )
-
-            if employee_choice == self.ui.QUIT_SIGNAL:
-                return
-
-            match employee_choice:
-                case "1":
-                    employee = RegularEmployee(id, name, rate)
-                case "2":
-                    employee = PartTimeEmployee(id, name, rate)
-                case "3":
-                    employee = CommissionEmployee(id, name, rate)
-                case _:
-                    self.ui.error("Available employee types are only between 1 to 3")
-                    continue
-            break
-
         try:
+            employee.rate = rate
             self.manager.create_employee(employee)
         except PayrollException as e:
             self.ui.error(str(e))
@@ -143,8 +148,8 @@ class Application:
 
     def record(self):
         hours: int
-        overtime_hours: int
-        absences: int
+        overtime_hours = 0
+        absences = 0
         id: str
         sales: list[float] = []
         employee: Employee
@@ -181,51 +186,52 @@ class Application:
                     continue
             break
 
-        while True:
-            try:
-                i = self.ui.input(
-                    "How many hours has the employee worked overtime? Leave blank if none"
-                )
+        if isinstance(employee, RegularEmployee):
+            while True:
+                try:
+                    i = self.ui.input(
+                        "How many hours has the employee worked overtime? Leave blank if none."
+                    )
 
-                if i == self.ui.QUIT_SIGNAL:
-                    return
+                    if i == self.ui.QUIT_SIGNAL:
+                        return
 
-                if len(i) == 0:
-                    i = "0"
+                    if len(i) == 0:
+                        i = "0"
 
-                overtime_hours = int(i)
-            except ValueError:
-                self.ui.error("Fill in a valid amount of overtime hours.")
-                continue
-            else:
-                if hours < 0:
-                    self.ui.error("Overtime hours may not be less than 0.")
+                    overtime_hours = int(i)
+                except ValueError:
+                    self.ui.error("Fill in a valid amount of overtime hours.")
                     continue
-            break
+                else:
+                    if hours < 0:
+                        self.ui.error("Overtime hours may not be less than 0.")
+                        continue
+                break
 
-        while True:
-            try:
-                i = self.ui.input(
-                    "How many absences has the employee made? Leave blank if none"
-                )
+            while True:
+                try:
+                    i = self.ui.input(
+                        "How many absences has the employee made? Leave blank if none."
+                    )
 
-                if i == self.ui.QUIT_SIGNAL:
-                    return
+                    if i == self.ui.QUIT_SIGNAL:
+                        return
 
-                if len(i) == 0:
-                    i = "0"
+                    if len(i) == 0:
+                        i = "0"
 
-                absences = int(i)
-            except ValueError:
-                self.ui.error("Fill in a valid amount of absences.")
-                continue
-            else:
-                if hours <= 0:
-                    self.ui.error("Absence count may not be less than 0.")
+                    absences = int(i)
+                except ValueError:
+                    self.ui.error("Fill in a valid amount of absences.")
                     continue
-            break
+                else:
+                    if hours <= 0:
+                        self.ui.error("Absence count may not be less than 0.")
+                        continue
+                break
 
-        if isinstance(employee, CommissionEmployee):
+        elif isinstance(employee, CommissionEmployee):
             answer = ""
             while answer.lower() != "q":
                 while True:
@@ -312,7 +318,7 @@ class Application:
             break
 
         self.ui.success(f"Found employee {id}")
-        print(employee.__str__)
+        print(employee.__str__() + "\n")
         self.ui.back()
 
     def payslip(self):
@@ -339,7 +345,7 @@ class Application:
             self.ui.error(str(e))
         else:
             self.ui.success(f"Found payroll entry for employee {id}")
-            print(payslip.__str__)
+            print(payslip.__str__() + "\n")
         finally:
             self.ui.back()
 
@@ -348,12 +354,17 @@ class Application:
             self.ui.error("No payroll records found.")
         else:
             for e in self.manager.payrolls:
-                print(e.__str__)
+                print(e.__str__() + "\n")
 
         self.ui.back()
 
     def report(self):
         border = "-" * 5
+        green = "\033[92m"
+        red = "\033[91m"
+        blue = "\033[94m"
+        color_end = "\033[0m"
+
         try:
             report = self.manager.report(
                 payroll=True,
@@ -366,42 +377,43 @@ class Application:
             self.ui.error(str(e))
         else:
             print(self.ui.HEADER)
-            print("Employee and Performance Statistics Report")
+            print("Employee and Performance Statistics Report\n")
 
-            print(f"{border}  Payroll Total per Employee Type  {border}")
+            print(f"{border}  Payroll Total per Employee Type\n")
             for k, v in report["payroll"].items():
-                print(f"{k}: {v:,.2f}")
+                print(f"{k}: {green}{v:,.2f}{color_end}")
 
-            print(f"{border}  Highest and Lowest Net Pay  {border}")
+            print(f"\n{border}  Highest and Lowest Net Pay")
             items = report["net_pay"]
             print(
-                f"Highest Pay: {items['highest']:,.2f}\t\tLowest Pay: {items['lowest']:,.2f}"
+                f"Highest Pay: {green}{items['highest']:,.2f}{color_end}\nLowest Pay: {green}{items['lowest']:,.2f}{color_end}"
             )
 
-            print(f"{border}  Deductions and Benefits Summary  {border}")
+            print(f"\n{border}  Deductions and Benefits Summary\n")
             deductions = report["deduction"]["total"]
             benefits = report["benefit"]["total"]
             print(
-                f"A total of {deductions:,.2f} has been deducted across all employee payrolls. Meanwhile, a total of {benefits:,.2f} benefits has been paid across all employees."
+                f"A total of {red}{deductions:,.2f}{color_end} has been deducted across all employee payrolls.\nMeanwhile, a total of {green}{benefits:,.2f}{color_end} benefits has been paid across all employees."
             )
 
             print(
-                f"{border} Employees with Overtime Hours and Zero-Payable Contracts {border}"
+                f"\n{border} Employees with Overtime Hours and Zero-Payable Contracts\n"
             )
 
             overtime = report["employee_filter"]["overtime"]
             zero_payable = report["employee_filter"]["zero-payable"]
 
-            print("Overtime Employees:\n")
+            print("\nOvertime Employees:\n")
             for e in overtime:
                 print(
-                    f"{e.employee.__str__}\nOvertime Hours: {e.attendance.overtime_hours}hr/s"
+                    f"{e.employee.__str__()}\nOvertime Hours: {e.attendance.overtime_hours}hr(s)\n"
                 )
 
-            print("Zero-Payable Contracted Employees:\n")
+            print("\nZero-Payable Contracted Employees:\n")
             for e in zero_payable:
                 print(
-                    f"{e.employee.__str__}\nTotal Sales: {math.fsum(e.attendance.sales):,.2f}"
+                    f"{e.employee.__str__()}\nTotal Sales: {green}{math.fsum(e.attendance.sales):,.2f}{color_end}\n"
                 )
+            print("\n")
         finally:
             self.ui.back()

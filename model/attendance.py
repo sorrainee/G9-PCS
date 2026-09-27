@@ -1,3 +1,6 @@
+from typing_extensions import override
+
+
 class AttendanceRecord:
     def __init__(
         self,
@@ -16,3 +19,7 @@ class AttendanceRecord:
     @property
     def employee_id(self) -> str:
         return self.__employee_id
+
+    @override
+    def __str__(self) -> str:
+        return f"Employee ID: {self.employee_id}\nWork Hours: {self.hours}hr(s)\nOvertime Hours: {self.overtime_hours}hr(s)\nAbsences: {self.absences}\nSales: {','.join([f'{s:,.2f}' for s in self.sales])}"
