@@ -38,7 +38,7 @@ _Screenshot of the payroll view for an employee with a successful operation_
 ![Payroll All view](assets/payroll_all.png)
 _Screenshot of the payroll view for every employee with an invalid operation_
 
-![Search view](assets/register.png)
+![Search view](assets/search.png)
 _Screenshot of the search view with an invalid operation_
 
 ## Reflection
