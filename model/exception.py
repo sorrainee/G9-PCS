@@ -1,0 +1,2 @@
+class PayrollException(Exception):
+    pass
