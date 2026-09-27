@@ -6,6 +6,8 @@ A payroll and compensation system by Group 9. A python activity.
 
 ## Class Diagram
 
+![UML Class Diagram](assets/class_diagram.png)
+
 ## Class Responsbility Table / CRC Card
 
 ## Test Cases
