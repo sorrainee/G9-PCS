@@ -10,6 +10,8 @@ A payroll and compensation system by Group 9. A python activity.
 
 ## Class Responsbility Table / CRC Card
 
+![CRC Card](assets/crc.png)
+
 ## Test Cases
 
 | Test ID | Test Objective                                 | Input                                                                                                                                                                   | Expected Result                                                                        | Actual Result                                                                          | Status |
