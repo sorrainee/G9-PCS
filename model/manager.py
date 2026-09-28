@@ -90,6 +90,8 @@ class PayrollManager:
         self.__attendance: dict[str, AttendanceRecord] = {}
         self.__payrolls: list[PayrollEntry] = []
 
+        self.__init_test_data()
+
     @property
     def employees(self):
         return self.__employees
@@ -268,7 +270,7 @@ class PayrollManager:
 
         return report
 
-    def init_test_data(self):
+    def __init_test_data(self):
         monthly_to_weekly = lambda s: s * 12 / 52
 
         employees = [
