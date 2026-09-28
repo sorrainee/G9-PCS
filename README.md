@@ -4,6 +4,41 @@ A payroll and compensation system by Group 9. A python activity.
 
 ## System Overview
 
+The Payroll and Compensation System is a console-based application developed to
+manage employee information, attendance records, payroll processing, and compensation
+reporting. The system is intended for payroll administrators or human resource personnel who
+are responsible for maintaining employee records and ensuring accurate salary computation.
+Through a menu-driven interface, users can efficiently perform payroll-related tasks while
+maintaining data integrity through validation and exception handling.
+The primary purpose of the system is to automate payroll calculations for different
+employee types. The system supports three employee types: Regular Employees, Part-Time
+Employees, and Commission-Based Employees. Each employee type follows a specific
+compensation model, allowing the system to compute payroll accurately according to the
+employee's work arrangement.
+
+The system provides several major operations. Users can register new employees by
+providing their employee ID, name, employee type, and salary details. Attendance records can
+then be created to store work hours, overtime hours, absences, or sales information depending on
+the employee type. Payroll can be processed individually for a specific employee or
+automatically for all employees with recorded attendance. The system also supports employee
+searching through employee IDs, payslip generation, payroll history viewing, and comprehensive
+payroll reporting.
+
+Several business rules are enforced to ensure reliability and prevent invalid transactions.
+Employee IDs must be unique and employee names cannot contain numbers or special
+characters. Salary values, work hours, overtime hours, absences, and sales amounts must be valid
+numeric values. Attendance records cannot be created for non-existent employees. Payroll
+cannot be processed without a corresponding attendance record, and duplicate payroll processing
+is prevented. The system also validates employee-specific information such as overtime and
+absences for regular employees and sales records for commission-based employees.
+
+The application follows the Model-View-Controller (MVC) architecture to improve
+organization and maintainability. The Model layer manages employee, attendance, payroll, and
+exception classes. The View layer handles , while the Controller layer coordinates business logic
+and payroll processing . By applying object-oriented programming principles such as abstraction,
+encapsulation, inheritance, polymorphism, and exception handling, the system provides a scalable
+and maintainable solution for payroll management and compensation tracking.
+
 ## Class Diagram
 
 ![UML Class Diagram](assets/class_diagram.png)

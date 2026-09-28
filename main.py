@@ -1,5 +1,5 @@
-from app import Application
-from controller.manager import PayrollManager
+from controller.app import Application
+from model.manager import PayrollManager
 from view.view import View
 
 if __name__ == "__main__":

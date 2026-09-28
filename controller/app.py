@@ -1,9 +1,7 @@
-import math
 import re
 import sys
 from time import sleep
 
-from controller.manager import PayrollManager
 from model.attendance import AttendanceRecord
 from model.employee import (
     CommissionEmployee,
@@ -12,6 +10,7 @@ from model.employee import (
     RegularEmployee,
 )
 from model.exception import PayrollException
+from model.manager import PayrollManager
 from view.view import View, ViewMode
 
 
@@ -26,30 +25,31 @@ class Application:
         while True:
             match self.ui.view:
                 case ViewMode.OPTIONS:
-                    self.options()
+                    self.handle_options()
                 case ViewMode.REGISTER:
-                    self.register()
+                    self.handle_register()
                 case ViewMode.RECORD:
-                    self.record()
+                    self.handle_record()
                 case ViewMode.PROCESS_ONE:
-                    self.process_payroll()
+                    self.handle_process_payroll()
                 case ViewMode.PROCESS_ALL:
-                    self.process_all_payrolls()
+                    self.handle_process_all_payrolls()
                 case ViewMode.SEARCH:
-                    self.search()
+                    self.handle_search()
                 case ViewMode.PAYSLIP:
-                    self.payslip()
+                    self.handle_payslip()
                 case ViewMode.HISTORY:
-                    self.history()
+                    self.handle_history()
                 case ViewMode.REPORT:
-                    self.report()
+                    self.handle_report()
                 case ViewMode.QUIT:
-                    sys.exit()
+                    self.handle_exit()
 
     # Helpers
 
-    def options(self):
-        self.ui.options()
+    def handle_options(self):
+        self.ui.options_view()
+
         while True:
             match self.ui.input():
                 case "1":
@@ -69,13 +69,13 @@ class Application:
                 case "8":
                     self.ui.set_view_mode(ViewMode.REPORT)
                 case "9":
-                    self.ui.exit()
+                    self.ui.set_view_mode(ViewMode.QUIT)
                 case _:
                     self.ui.error("Available operations are only from 1 to 9")
                     continue
             break
 
-    def register(self):
+    def handle_register(self):
         rate: float
         employee: Employee
 
@@ -146,7 +146,7 @@ class Application:
         finally:
             self.ui.back()
 
-    def record(self):
+    def handle_record(self):
         hours: int
         overtime_hours = 0
         absences = 0
@@ -260,7 +260,7 @@ class Application:
         finally:
             self.ui.back()
 
-    def process_payroll(self):
+    def handle_process_payroll(self):
         id: str
 
         while True:
@@ -287,7 +287,7 @@ class Application:
         finally:
             self.ui.back()
 
-    def process_all_payrolls(self):
+    def handle_process_all_payrolls(self):
         print("Processing every payroll for every employee. This might take a while...")
         sleep(0.5)
 
@@ -300,7 +300,7 @@ class Application:
         finally:
             self.ui.back()
 
-    def search(self):
+    def handle_search(self):
         id: str
         employee: Employee
 
@@ -316,12 +316,10 @@ class Application:
                 self.ui.error(str(e))
                 continue
             break
-
-        self.ui.success(f"Found employee {id}")
-        print(employee.__str__() + "\n")
+        self.ui.employee_view(employee)
         self.ui.back()
 
-    def payslip(self):
+    def handle_payslip(self):
         id: str
 
         while True:
@@ -344,27 +342,15 @@ class Application:
         except PayrollException as e:
             self.ui.error(str(e))
         else:
-            self.ui.success(f"Found payroll entry for employee {id}")
-            print(payslip.__str__() + "\n")
+            self.ui.payslip_view(payslip)
         finally:
             self.ui.back()
 
-    def history(self):
-        if len(self.manager.payrolls) <= 0:
-            self.ui.error("No payroll records found.")
-        else:
-            for e in self.manager.payrolls:
-                print(e.__str__() + "\n")
-
+    def handle_history(self):
+        self.ui.history_view(self.manager.payrolls)
         self.ui.back()
 
-    def report(self):
-        border = "-" * 5
-        green = "\033[92m"
-        red = "\033[91m"
-        blue = "\033[94m"
-        color_end = "\033[0m"
-
+    def handle_report(self):
         try:
             report = self.manager.report(
                 payroll=True,
@@ -376,44 +362,11 @@ class Application:
         except PayrollException as e:
             self.ui.error(str(e))
         else:
-            print(self.ui.HEADER)
-            print("Employee and Performance Statistics Report\n")
-
-            print(f"{border}  Payroll Total per Employee Type\n")
-            for k, v in report["payroll"].items():
-                print(f"{k}: {green}{v:,.2f}{color_end}")
-
-            print(f"\n{border}  Highest and Lowest Net Pay")
-            items = report["net_pay"]
-            print(
-                f"Highest Pay: {green}{items['highest']:,.2f}{color_end}\nLowest Pay: {green}{items['lowest']:,.2f}{color_end}"
-            )
-
-            print(f"\n{border}  Deductions and Benefits Summary\n")
-            deductions = report["deduction"]["total"]
-            benefits = report["benefit"]["total"]
-            print(
-                f"A total of {red}{deductions:,.2f}{color_end} has been deducted across all employee payrolls.\nMeanwhile, a total of {green}{benefits:,.2f}{color_end} benefits has been paid across all employees."
-            )
-
-            print(
-                f"\n{border} Employees with Overtime Hours and Zero-Payable Contracts\n"
-            )
-
-            overtime = report["employee_filter"]["overtime"]
-            zero_payable = report["employee_filter"]["zero-payable"]
-
-            print("\nOvertime Employees:\n")
-            for e in overtime:
-                print(
-                    f"{e.employee.__str__()}\nOvertime Hours: {e.attendance.overtime_hours}hr(s)\n"
-                )
-
-            print("\nZero-Payable Contracted Employees:\n")
-            for e in zero_payable:
-                print(
-                    f"{e.employee.__str__()}\nTotal Sales: {green}{math.fsum(e.attendance.sales):,.2f}{color_end}\n"
-                )
-            print("\n")
+            self.ui.report_view(report)
         finally:
             self.ui.back()
+
+    def handle_exit(self):
+        self.ui.exit_view()
+        sleep(0.5)
+        sys.exit()
