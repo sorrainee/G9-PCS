@@ -1,7 +1,11 @@
-from model.attendance import AttendanceRecord
+import math
+from typing import override
+
+from model.benefit import Benefit
 from model.deduction import Deduction
 from model.employee import *
 from model.exception import PayrollException
+from view.enums import Color
 
 
 class PayrollEntry:
@@ -56,30 +60,25 @@ class PayrollEntry:
 
     @override
     def __str__(self) -> str:
-        green = "\033[92m"
-        red = "\033[91m"
-        blue = "\033[94m"
-        color_end = "\033[0m"
-
-        s = f"----  Payslip for Employee {blue}{self.employee.id}{color_end}  ----\nStatus: {blue}{self.status}{color_end}\nName: {self.employee.name}\nHours Worked: {self.attendance.hours:,d}hr(s)\nRate: {self.employee.rate:,.2f}\nAmount: {self.gross_pay():,.2f}\n\n"
+        s = f"----  Payslip for Employee {Color.BLUE.value}{self.employee.id}{Color.END.value}  ----\nStatus: {Color.BLUE.value}{self.status}{Color.END.value}\nName: {self.employee.name}\nHours Worked: {self.attendance.hours:,d}hr(s)\nRate: {self.employee.rate:,.2f}\nAmount: {self.gross_pay():,.2f}\n\n"
 
         if self.attendance.absences > 0 or len(self.deductions) > 0:
             s += "Deductions:\n"
 
             if self.attendance.absences > 0:
-                s += f"Absence ({self.attendance.absences}x): {red}{self.calculate_absence_deduction():,.2f}{color_end}\n"
+                s += f"Absence ({self.attendance.absences}x): {Color.RED.value}{self.calculate_absence_deduction():,.2f}{Color.END.value}\n"
 
             for d in self.deductions:
-                s += f"{d.name.replace('_', ' ').title()}: {red}{(self.gross_pay() / d.value):,.2f}{color_end}\n"
+                s += f"{d.name.replace('_', ' ').title()}: {Color.RED.value}{(self.gross_pay() / d.value):,.2f}{Color.END.value}\n"
 
             s += "\n"
 
         if len(self.benefits) > 0:
             s += "Benefits:\n"
             for b in self.benefits:
-                s += f"{b.name.replace('_', ' ').title()}: {green}{b.value:,.2f}{color_end}\n"
+                s += f"{b.name.replace('_', ' ').title()}: {Color.GREEN.value}{b.value:,.2f}{Color.END.value}\n"
 
-        s += f"\nAmount Paid: {green}{self.net_pay():,.2f}{color_end}"
+        s += f"\nAmount Paid: {Color.GREEN.value}{self.net_pay():,.2f}{Color.END.value}"
 
         return s
 
@@ -160,11 +159,15 @@ class PayrollManager:
         )
 
     def process_all_payroll(self):
+        count = 0
         for id in self.employees:
             if self.payroll_exists(id):
                 continue
 
             self.process_payroll(id)
+            count += 1
+
+        return count
 
     def find_employee(self, employee_id: str) -> Employee:
         if not self.employee_exists(employee_id):
@@ -175,7 +178,12 @@ class PayrollManager:
         return self.employees[employee_id]
 
     def find_payroll_entry(self, employee_id: str):
-        return next(filter(lambda e: e.employee.id == employee_id, self.payrolls))
+        try:
+            return next(filter(lambda e: e.employee.id == employee_id, self.payrolls))
+        except StopIteration:
+            raise PayrollException(
+                f"No payslip found. Employee {employee_id}'s payroll has not been processed yet."
+            )
 
     def report(self, **kwargs):
         """

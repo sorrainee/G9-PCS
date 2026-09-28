@@ -11,7 +11,8 @@ from model.employee import (
 )
 from model.exception import PayrollException
 from model.manager import PayrollManager
-from view.view import View, ViewMode
+from view.enums import ViewMode
+from view.view import View
 
 
 class Application:
@@ -292,11 +293,13 @@ class Application:
         sleep(0.5)
 
         try:
-            self.manager.process_all_payroll()
+            count = self.manager.process_all_payroll()
         except PayrollException as e:
             self.ui.error(str(e))
         else:
-            self.ui.success("Successfully processed every employee's payrolls.")
+            self.ui.success(
+                f"Successfully processed {count} employee{"s'" if count > 1 else "'s"} payroll{'s' if count > 1 else ''}."
+            )
         finally:
             self.ui.back()
 
@@ -342,7 +345,7 @@ class Application:
         except PayrollException as e:
             self.ui.error(str(e))
         else:
-            self.ui.payslip_view(payslip)
+            self.ui.payslip_view(id, payslip)
         finally:
             self.ui.back()
 

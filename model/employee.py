@@ -4,6 +4,7 @@ from typing import override
 
 from model.attendance import AttendanceRecord
 from model.benefit import *
+from view.enums import Color
 
 
 class Employee(ABC):
@@ -26,10 +27,7 @@ class Employee(ABC):
 
     @override
     def __str__(self) -> str:
-        blue = "\033[94m"
-        color_end = "\033[0m"
-
-        return f"Employee ID: {blue}{self.id}{color_end}\nName: {self.name}"
+        return f"Employee ID: {Color.BLUE.value}{self.id}{Color.END.value}\nName: {self.name}"
 
     @override
     def __eq__(self, value: object, /) -> bool:
@@ -67,10 +65,10 @@ class RegularEmployee(Employee):
 
     @override
     def __str__(self) -> str:
-        green = "\033[92m"
-        color_end = "\033[0m"
-
-        return super().__str__() + f"\nSalary: {green}{self.rate:,.2f}{color_end}"
+        return (
+            super().__str__()
+            + f"\nSalary: {Color.GREEN.value}{self.rate:,.2f}{Color.END.value}"
+        )
 
 
 class PartTimeEmployee(Employee):
@@ -87,10 +85,10 @@ class PartTimeEmployee(Employee):
 
     @override
     def __str__(self) -> str:
-        green = "\033[92m"
-        color_end = "\033[0m"
-
-        return super().__str__() + f"\nHourly Wage: {green}{self.rate:,.2f}{color_end}"
+        return (
+            super().__str__()
+            + f"\nHourly Wage: {Color.GREEN.value}{self.rate:,.2f}{Color.END.value}"
+        )
 
 
 class CommissionEmployee(Employee):
@@ -107,6 +105,7 @@ class CommissionEmployee(Employee):
 
     @override
     def __str__(self) -> str:
-        green = "\033[92m"
-        color_end = "\033[0m"
-        return super().__str__() + f"\nBase Pricing: {green}{self.rate:,.2f}{color_end}"
+        return (
+            super().__str__()
+            + f"\nBase Pricing: {Color.GREEN.value}{self.rate:,.2f}{Color.END.value}"
+        )
