@@ -97,3 +97,13 @@ _Screenshot of the register view with an invalid operation_
 
 ![Search Failed view](assets/search_failed.png)
 _Screenshot of the search view with an invalid operation_
+
+## Reflection
+
+In designing a system, scalability and maintainability must be considered. Object-oriented programming, while it comes with many cons,
+is great at enabling a modular approach towards systems development. With its principles, blocks of code turn into concrete structures
+that serve as foundations for re-usability and scalability. The development of the payroll and compensation system made use of the
+principles of OOP such as Inheritance for the employee and the different types of employees, Encapsulation to hide critical and private
+properties and methods and Abstraction for wrapping operations in a callable manner, and Polymorphism for the overriding of methods for
+each different types of employees and how their gross pay are calculated. Through this design, we were able to write a
+Model-View-Controller framework and further improved organization of our codebase.
