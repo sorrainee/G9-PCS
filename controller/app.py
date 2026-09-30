@@ -75,14 +75,19 @@ class Application:
         employee: Employee
 
         while True:
-            id = self.ui.input("What is the employee's ID?")
+            id = self.ui.input(
+                "What is the employee's ID? Leave blank for an auto-generated ID."
+            )
 
             if id == self.ui.QUIT_SIGNAL:
                 return
 
             if len(id) == 0:
-                self.ui.error("Input cannot be blank.")
-                continue
+                n = 7
+                n ^= n << 13
+                n ^= n >> 17
+                n ^= n << 5
+                id = f"E-{n}"
 
             try:
                 self.manager.find_employee(id)
