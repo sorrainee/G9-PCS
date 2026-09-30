@@ -13,7 +13,7 @@ from view.enums import Color, ViewMode
 class View:
     SYSTEM_NAME = "systemd"
     HEADER = f"{'-' * 10}  {SYSTEM_NAME} [Payroll and Compensation]  {'-' * 10}\n"
-    DESCRIPTION = f"To exit views other than this one pre-emptively, enter '{Color.BLUE}:q{Color.END}' in any input.\n"
+    DESCRIPTION = f"To exit views other than this one pre-emptively, enter '{Color.BLUE.value}:q{Color.END.value}' in any input.\n"
     QUIT_SIGNAL = ":q"
 
     def clear_screen(self):

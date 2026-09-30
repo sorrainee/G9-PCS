@@ -3,16 +3,10 @@ import sys
 from time import sleep
 
 from model.attendance import AttendanceRecord
-from model.employee import (
-    CommissionEmployee,
-    Employee,
-    PartTimeEmployee,
-    RegularEmployee,
-)
+from model.employee import *
 from model.exception import PayrollException
 from model.manager import PayrollManager
-from view.enums import ViewMode
-from view.view import View
+from view.view import View, ViewMode
 
 
 class Application:
@@ -80,16 +74,35 @@ class Application:
         rate: float
         employee: Employee
 
-        id = self.ui.input("What is the employee's ID?")
+        while True:
+            id = self.ui.input("What is the employee's ID?")
 
-        if id == self.ui.QUIT_SIGNAL:
-            return
+            if id == self.ui.QUIT_SIGNAL:
+                return
+
+            if len(id) == 0:
+                self.ui.error("Input cannot be blank.")
+                continue
+
+            try:
+                self.manager.find_employee(id)
+            except PayrollException:
+                break
+            else:
+                self.ui.error(
+                    f"Unable to register employee. ID {id} is already registered to an employee."
+                )
+                continue
 
         while True:
             name = self.ui.input("What is the employee's registered name?")
 
             if name == self.ui.QUIT_SIGNAL:
                 return
+
+            if len(name) == 0:
+                self.ui.error("Input cannot be blank.")
+                continue
 
             if (
                 any(s.isdigit() for s in name)
@@ -108,6 +121,10 @@ class Application:
 
             if employee_choice == self.ui.QUIT_SIGNAL:
                 return
+
+            if len(employee_choice) == 0:
+                self.ui.error("Input cannot be blank.")
+                continue
 
             match employee_choice:
                 case "1":
@@ -129,6 +146,10 @@ class Application:
 
                 if f == self.ui.QUIT_SIGNAL:
                     return
+
+                if len(f) == 0:
+                    self.ui.error("Input cannot be blank.")
+                    continue
 
                 rate = float(f)
 
@@ -163,8 +184,22 @@ class Application:
             if id == self.ui.QUIT_SIGNAL:
                 return
 
+            if len(id) == 0:
+                self.ui.error("Input cannot be blank.")
+                continue
+
             try:
                 employee = self.manager.find_employee(id)
+
+                try:
+                    self.manager.find_attendance(employee.id)
+                except PayrollException:
+                    pass
+                else:
+                    self.ui.error(
+                        f"Unable to record data. Employee {id} already has a recorded attendance."
+                    )
+                    continue
             except PayrollException as e:
                 self.ui.error(str(e))
                 continue
@@ -176,6 +211,10 @@ class Application:
 
                 if i == self.ui.QUIT_SIGNAL:
                     return
+
+                if len(i) == 0:
+                    self.ui.error("Input cannot be blank.")
+                    continue
 
                 hours = int(i)
             except ValueError:
@@ -243,6 +282,10 @@ class Application:
                     if answer == self.ui.QUIT_SIGNAL:
                         return
 
+                    if len(answer) == 0:
+                        self.ui.error("Input cannot be blank.")
+                        continue
+
                     try:
                         sales.append(float(answer))
                     except ValueError:
@@ -271,6 +314,10 @@ class Application:
 
             if id == self.ui.QUIT_SIGNAL:
                 return
+
+            if len(id) == 0:
+                self.ui.error("Input cannot be blank.")
+                continue
 
             try:
                 self.manager.find_employee(id)
@@ -313,6 +360,10 @@ class Application:
             if id == self.ui.QUIT_SIGNAL:
                 return
 
+            if len(id) == 0:
+                self.ui.error("Input cannot be blank.")
+                continue
+
             try:
                 employee = self.manager.find_employee(id)
             except PayrollException as e:
@@ -332,6 +383,10 @@ class Application:
 
             if id == self.ui.QUIT_SIGNAL:
                 return
+
+            if len(id) == 0:
+                self.ui.error("Input cannot be blank.")
+                continue
 
             try:
                 self.manager.find_employee(id)

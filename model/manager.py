@@ -1,6 +1,7 @@
 import math
 from typing import override
 
+from model.attendance import AttendanceRecord
 from model.benefit import Benefit
 from model.deduction import Deduction
 from model.employee import *
@@ -86,7 +87,7 @@ class PayrollEntry:
 class PayrollManager:
     def __init__(self):
         self.__employees: dict[str, Employee] = {}
-        self.__attendance: dict[str, AttendanceRecord] = {}
+        self.__attendance: list[AttendanceRecord] = []
         self.__payrolls: list[PayrollEntry] = []
 
         self.__init_test_data()
@@ -107,9 +108,9 @@ class PayrollManager:
         return employee_id in self.employees
 
     def attendance_exists(self, employee_id: str):
-        return employee_id in self.attendance
+        return employee_id in [a.employee_id for a in self.attendance]
 
-    def payroll_exists(self, employee_id: str):
+    def payroll_entry_exists(self, employee_id: str):
         return employee_id in [e.employee.id for e in self.payrolls]
 
     def create_employee(self, employee: Employee):
@@ -126,12 +127,15 @@ class PayrollManager:
                 f"Cannot record data. Data does not belong to a registered employee {attendance.employee_id}."
             )
 
-        if self.attendance_exists(attendance.employee_id):
-            raise PayrollException(
-                f"Cannot record data. Employee {attendance.employee_id} already has an attendance filled out."
-            )
+        try:
+            self.find_attendance(attendance.employee_id)
+        except PayrollException:
+            self.attendance.append(attendance)
 
-        self.attendance[attendance.employee_id] = attendance
+        else:
+            raise PayrollException(
+                f"Cannot record attendance. Employee {attendance.employee_id} already has an attendance filled out."
+            )
 
     def process_payroll(self, employee_id: str):
         if not self.employee_exists(employee_id):
@@ -140,19 +144,22 @@ class PayrollManager:
             )
 
         if not self.attendance_exists(employee_id):
-            raise PayrollException(f"No data belongs to employee {employee_id}.")
+            raise PayrollException(
+                f"No attendance found. Employee {employee_id} has no work data yet."
+            )
 
-        if self.payroll_exists(employee_id):
+        if self.payroll_entry_exists(employee_id):
             raise PayrollException(
                 f"Unable to process payroll. Payroll for employee {employee_id} already exists."
             )
 
+        attendance = self.find_attendance(employee_id)
         employee = self.find_employee(employee_id)
 
         self.payrolls.append(
             PayrollEntry(
                 employee,
-                self.attendance[employee_id],
+                attendance,
                 (Deduction.INCOME_TAX,),
                 employee.get_benefits(),
             )
@@ -161,7 +168,7 @@ class PayrollManager:
     def process_all_payroll(self):
         count = 0
         for id in self.employees:
-            if self.payroll_exists(id):
+            if self.payroll_entry_exists(id):
                 continue
 
             self.process_payroll(id)
@@ -169,21 +176,31 @@ class PayrollManager:
 
         return count
 
-    def find_employee(self, employee_id: str) -> Employee:
+    def find_employee(self, employee_id: str):
         if not self.employee_exists(employee_id):
             raise PayrollException(
-                f"Employee not found. {employee_id} does not belong to any registered employees."
+                f"Employee not found. Employee {employee_id} does not belong to any registered employees."
             )
 
         return self.employees[employee_id]
 
-    def find_payroll_entry(self, employee_id: str):
-        try:
-            return next(filter(lambda e: e.employee.id == employee_id, self.payrolls))
-        except StopIteration:
+    def find_attendance(self, employee_id: str):
+        a = next(filter(lambda a: a.employee_id == employee_id, self.attendance), None)
+
+        if a == None:
             raise PayrollException(
-                f"No payslip found. Employee {employee_id}'s payroll has not been processed yet."
+                f"No attendance found. Employee {employee_id} has no work data yet."
             )
+        return a
+
+    def find_payroll_entry(self, employee_id: str):
+        e = next(filter(lambda e: e.employee.id == employee_id, self.payrolls), None)
+
+        if e == None:
+            raise PayrollException(
+                f"No payroll found. Employee {employee_id}'s payroll is yet to be processed."
+            )
+        return e
 
     def report(self, **kwargs):
         """
